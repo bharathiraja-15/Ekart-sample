@@ -67,10 +67,13 @@ pipeline {
             }
         }
 
-        stage('trigger the pipeline CD PIPELINE') {
-            steps {
-                build job: "cd_pipeline" , wait: true
-            }
+        stage('Trigger CD Pipeline') {
+    steps {
+        script {
+            def result = build job: 'cd_pipeline', wait: true
+            echo "CD Pipeline Result: ${result.result}"
         }
+    }
+}
     }
 }
