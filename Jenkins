@@ -1,0 +1,76 @@
+pipeline {
+    agent any
+
+    tools {
+        jdk 'jdk11'
+        maven 'maven3'
+    }
+
+    environment {
+        SCANNER_HOME = tool 'SonarQubeScanner'
+    }
+
+    stages {
+
+        stage('git checkout') {
+            steps {
+                git branch: 'main', url: 'https://github.com/bharathiraja-15/Ekart-sample.git'
+            }
+        }
+
+        stage('compile') {
+            steps {
+                sh "mvn clean install -DskipTests"
+            }
+        }
+
+        stage('SonarQube Analysis') {
+            steps {
+                withSonarQubeEnv('SonarQubeServer') {
+                    sh """
+                    $SCANNER_HOME/bin/sonar-scanner \
+                    -Dsonar.projectKey=shopping-cart \
+                    -Dsonar.projectName="Shopping Cart" \
+                    -Dsonar.sources=. \
+                    -Dsonar.java.binaries=target/classes \
+                    -Dsonar.host.url=http://13.61.5.83:9000/ \
+                    -Dsonar.login=squ_86173cf99c69d85c323717e5ffc70124dedaa468
+                    """
+                }
+            }
+        }
+
+        stage('OWASP SCAN') {
+            steps {
+                dependencyCheck additionalArguments: '--scan ./', odcInstallation: 'DP'
+                dependencyCheckPublisher pattern: '**/dependency-check-report.xml'
+            }
+        }
+
+        stage('Build') {
+    steps {
+        sh "mvn clean install -DskipTests"
+    }
+}
+
+        stage('Build and Push Docker') {
+            steps {
+                script {
+                    withDockerRegistry([credentialsId: 'docker']) {
+                        sh '''
+                            docker build -t shopping:latest -f docker/Dockerfile .
+                            docker tag shopping:latest bharathiraja3234/shopping:latest
+                            docker push bharathiraja3234/shopping:latest
+                        '''
+                    }
+                }
+            }
+        }
+
+        stage('trigger the pipeline CD PIPELINE') {
+            steps {
+                build job: "cd_pipeline" , wait: true
+            }
+        }
+    }
+}
