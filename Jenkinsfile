@@ -33,8 +33,8 @@ pipeline {
                     -Dsonar.projectName="Shopping Cart" \
                     -Dsonar.sources=. \
                     -Dsonar.java.binaries=target/classes \
-                    -Dsonar.host.url=http://13.61.5.83:9000/ \
-                    -Dsonar.login=squ_8f4da96d680a434a5a94b7bc5ce690b8ca0c2f7c
+                    -Dsonar.host.url=http://13.60.68.42:9000/ \
+                    -Dsonar.login=squ_8cf0d814dcc23caf3d6ae254c1732ef8f81a1b5e
                     """
                 }
             }
